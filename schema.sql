@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS bilik (
+  id   TEXT PRIMARY KEY,
+  data TEXT NOT NULL,
+  v    INTEGER NOT NULL
+);
