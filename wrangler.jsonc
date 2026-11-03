@@ -1,0 +1,17 @@
+{
+  "name": "spin-2-eat",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "spin-2-eat-db",
+      "database_id": "da3e32c8-f727-43e3-b320-060f0f3d37e0"
+    }
+  ]
+}

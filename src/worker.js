@@ -1,5 +1,4 @@
-// Cloudflare Pages Function: simpan dan baca papan untuk satu bilik.
-// Perlukan D1 binding bernama DB (lihat README).
+// Worker untuk Spin board: API bilik di /api/bilik/:id, selain tu hidang fail dari folder public.
 const okId = (id) => /^[a-z0-9]{4,16}$/i.test(id || "");
 const json = (obj, status = 200) =>
   new Response(JSON.stringify(obj), {
@@ -7,14 +6,12 @@ const json = (obj, status = 200) =>
     headers: { "content-type": "application/json", "cache-control": "no-store" },
   });
 
-export async function onRequestGet({ params, env }) {
-  if (!okId(params.id)) return json({ error: "id tak sah" }, 400);
-  const row = await env.DB.prepare("SELECT data, v FROM bilik WHERE id = ?").bind(params.id).first();
+async function getRoom(env, id) {
+  const row = await env.DB.prepare("SELECT data, v FROM bilik WHERE id = ?").bind(id).first();
   return json(row ? { v: row.v, data: JSON.parse(row.data) } : { v: 0, data: null });
 }
 
-export async function onRequestPut({ params, env, request }) {
-  if (!okId(params.id)) return json({ error: "id tak sah" }, 400);
+async function putRoom(env, id, request) {
   const text = await request.text();
   if (text.length > 20000) return json({ error: "data terlalu besar" }, 413);
   let d;
@@ -34,6 +31,25 @@ export async function onRequestPut({ params, env, request }) {
   const v = Date.now();
   await env.DB.prepare(
     "INSERT INTO bilik (id, data, v) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET data = excluded.data, v = excluded.v"
-  ).bind(params.id, JSON.stringify(clean), v).run();
+  ).bind(id, JSON.stringify(clean), v).run();
   return json({ v });
 }
+
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    const m = url.pathname.match(/^\/api\/bilik\/([^/]+)$/);
+    if (m) {
+      if (!okId(m[1])) return json({ error: "id tak sah" }, 400);
+      if (!env.DB) return json({ error: "binding DB belum ada" }, 500);
+      try {
+        if (request.method === "GET") return await getRoom(env, m[1]);
+        if (request.method === "PUT") return await putRoom(env, m[1], request);
+        return json({ error: "method tak dibenarkan" }, 405);
+      } catch (e) {
+        return json({ error: "database error: " + e.message }, 500);
+      }
+    }
+    return env.ASSETS.fetch(request);
+  },
+};

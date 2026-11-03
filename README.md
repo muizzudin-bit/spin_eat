@@ -1,22 +1,19 @@
-# Spin Board
+# Spin board
 
-Roda putar untuk apa-apa pilihan. Link asas sentiasa kosong. Tekan **Create share link** untuk buka bilik dengan link sendiri (`?board=xxxx`); semua yang buka link tu nampak papan dan spin yang sama.
+Roda putar untuk apa-apa pilihan. Link asas sentiasa kosong. Tekan **Create share link** untuk dapat link (`?board=xxxx`); semua yang buka link tu nampak papan, tajuk, description dan spin yang sama, live.
 
 ## Struktur
 
 ```
-index.html                      UI
-functions/api/bilik/[id].js     API simpan/baca bilik (Cloudflare Pages Functions)
-schema.sql                      jadual D1
+public/index.html   UI
+src/worker.js       API bilik (/api/bilik/:id) + hidang fail public
+wrangler.jsonc      config Cloudflare Worker
+schema.sql          jadual D1
 ```
 
-## Setup Cloudflare (sekali sahaja)
+## Setup D1 (sekali sahaja)
 
-1. Push folder ni ke GitHub.
-2. Cloudflare dashboard > **Workers & Pages** > Create > Pages > Connect to Git, pilih repo. Build command kosongkan, output directory `/`.
-3. **Storage & Databases > D1** > Create database, nama `roda-makan`.
-4. Buka database tu > **Console**, tampal isi `schema.sql`, Execute.
-5. Projek Pages > **Settings > Bindings** > Add > D1 database. Variable name: `DB`, pilih `roda-makan`.
-6. **Deployments** > Retry deployment (supaya binding aktif).
-
-Siap. Buka link projek, tambah kedai, tekan Create share link, salin link.
+1. Cloudflare dashboard > Storage & Databases > D1 > Create, nama `spin-2-eat-db`.
+2. Salin **Database ID**, tampal dalam `wrangler.jsonc` ganti `TAMPAL-DATABASE-ID-DI-SINI`.
+3. Buka database > Console, tampal isi `schema.sql`, Execute.
+4. Commit dan push. Workers Builds akan deploy sendiri.
